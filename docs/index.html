@@ -1,0 +1,1387 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Избирательный полигон | Выборы PRO</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        html {
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(145deg, #1e3c2c 0%, #0f2a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 1180px;
+            width: 100%;
+            background: #fef7e8;
+            border-radius: 32px;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+            position: relative;
+            transition: opacity 0.4s ease;
+        }
+        .container.fade-out {
+            opacity: 0;
+            transform: scale(0.97);
+        }
+        .header {
+            background: #2c5f2d;
+            color: white;
+            padding: 18px 72px 18px 24px;
+            text-align: center;
+            position: relative;
+            min-height: 86px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .header h1 {
+            margin: 0;
+            line-height: 1.15;
+            overflow-wrap: anywhere;
+        }
+        .info-btn {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #e67e22;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            width: 56px;
+            min-height: 42px;
+            padding: 6px 10px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .main-menu {
+            padding: 40px;
+            text-align: center;
+        }
+        .menu-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        .game-card {
+            background: #e8e0d0;
+            border: 2px solid transparent;
+            border-radius: 32px;
+            padding: 24px;
+            width: 250px;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            text-align: center;
+            animation: cardAppear 0.5s ease forwards;
+            opacity: 0;
+        }
+        .game-card:nth-child(1) { animation-delay: 0.1s; }
+        .game-card:nth-child(2) { animation-delay: 0.2s; }
+        .game-card:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+        }
+        .game-card:focus-visible,
+        .element:focus-visible,
+        .card:focus-visible,
+        .action-choice:focus-visible,
+        .reset-btn:focus-visible,
+        .level-btn:focus-visible,
+        .info-btn:focus-visible {
+            outline: 3px solid #f59e0b;
+            outline-offset: 3px;
+        }
+        .panel {
+            padding: 24px;
+            min-height: 0;
+            overflow-wrap: anywhere;
+        }
+        .panel h2,
+        .panel h3,
+        .panel p {
+            max-width: 100%;
+        }
+        .element {
+            background: #cbd5e1;
+            padding: 14px 18px;
+            border-radius: 16px;
+            margin: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            cursor: pointer;
+            min-width: 180px;
+            min-height: 60px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            animation: elementPop 0.4s ease forwards;
+            opacity: 0;
+            transform: scale(0.8);
+            border: 2px solid transparent;
+        }
+        .element:nth-child(1) { animation-delay: 0.05s; }
+        .element:nth-child(2) { animation-delay: 0.10s; }
+        .element:nth-child(3) { animation-delay: 0.15s; }
+        .element:nth-child(4) { animation-delay: 0.20s; }
+        .element:nth-child(5) { animation-delay: 0.25s; }
+        @keyframes elementPop {
+            from { opacity: 0; transform: scale(0.8) rotate(-2deg); }
+            to { opacity: 1; transform: scale(1) rotate(0); }
+        }
+        .element.found {
+            background: #2a7f6e;
+            color: white;
+            text-decoration: line-through;
+        }
+        .element.correct-flash {
+            animation: correctFlash 0.5s ease !important;
+        }
+        @keyframes correctFlash {
+            0% { transform: scale(1); background: #2c5f2d; }
+            50% { transform: scale(1.08); background: #4ade80; }
+            100% { transform: scale(1); background: #2a7f6e; }
+        }
+        .element.wrong-shake {
+            animation: wrongShake 0.4s ease !important;
+        }
+        @keyframes wrongShake {
+            0% { transform: translateX(0); background: #cbd5e1; }
+            25% { transform: translateX(-12px); background: #e74c3c; }
+            50% { transform: translateX(12px); background: #e74c3c; }
+            75% { transform: translateX(-6px); background: #e67e22; }
+            100% { transform: translateX(0); background: #cbd5e1; }
+        }
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            width: min(100%, 640px);
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .card {
+            aspect-ratio: 1 / 1;
+            background: #2c5f2d;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.75rem;
+            cursor: pointer;
+            color: white;
+            font-weight: bold;
+            padding: 6px;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            line-height: 1.15;
+            transition: transform 0.4s ease, background 0.3s ease, border 0.3s ease;
+            animation: cardFlipIn 0.4s ease forwards;
+            opacity: 0;
+            transform: rotateY(90deg);
+        }
+        .card:nth-child(1) { animation-delay: 0.02s; }
+        .card:nth-child(2) { animation-delay: 0.04s; }
+        .card:nth-child(3) { animation-delay: 0.06s; }
+        .card:nth-child(4) { animation-delay: 0.08s; }
+        .card:nth-child(5) { animation-delay: 0.10s; }
+        .card:nth-child(6) { animation-delay: 0.12s; }
+        .card:nth-child(7) { animation-delay: 0.14s; }
+        .card:nth-child(8) { animation-delay: 0.16s; }
+        @keyframes cardFlipIn {
+            from { opacity: 0; transform: rotateY(90deg) scale(0.8); }
+            to { opacity: 1; transform: rotateY(0) scale(1); }
+        }
+        .card.flipped {
+            background: #fef7e8;
+            color: #1e3c2c;
+            border: 2px solid #2a7f6e;
+            transform: rotateY(0) scale(1);
+        }
+        .card.matched {
+            background: #2a7f6e;
+            color: white;
+            border: 2px solid #2a7f6e;
+            cursor: default;
+            transform: rotateY(0) scale(1);
+        }
+        .card.match-success {
+            animation: matchPulse 0.5s ease !important;
+        }
+        @keyframes matchPulse {
+            0% { transform: scale(1); background: #2a7f6e; }
+            50% { transform: scale(1.1); background: #4ade80; }
+            100% { transform: scale(1); background: #2a7f6e; }
+        }
+        .options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+            justify-content: stretch;
+            margin: 20px 0;
+        }
+        .action-choice {
+            background: #2c5f2d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            width: 100%;
+            min-width: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.25;
+            transition: transform 0.2s ease, background 0.3s ease;
+            animation: optionAppear 0.4s ease forwards;
+            opacity: 0;
+        }
+        .action-choice:nth-child(1) { animation-delay: 0.05s; }
+        .action-choice:nth-child(2) { animation-delay: 0.10s; }
+        .action-choice:nth-child(3) { animation-delay: 0.15s; }
+        @keyframes optionAppear {
+            from { opacity: 0; transform: translateY(15px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .action-choice:hover { transform: scale(1.05); }
+        .action-choice.correct-answer {
+            background: #2a7f6e;
+            transform: scale(1);
+        }
+        .action-choice.wrong-answer {
+            background: #e74c3c;
+            transform: scale(1);
+        }
+        .action-choice.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: scale(1) !important;
+        }
+        .element.disabled,
+        .card.disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            filter: grayscale(0.3);
+        }
+        .reset-btn {
+            background: #e67e22;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 40px;
+            margin: 0;
+            cursor: pointer;
+            font-weight: bold;
+            max-width: 100%;
+            min-height: 42px;
+            overflow-wrap: anywhere;
+            transition: transform 0.2s ease;
+        }
+        .reset-btn:hover { transform: scale(1.05); }
+        .feedback {
+            width: 100%;
+            max-width: 760px;
+            margin: 18px auto;
+            padding: 14px 18px;
+            border-radius: 18px;
+            border-left: 5px solid #94a3b8;
+            background: #f8fafc;
+            color: #243327;
+            text-align: left;
+            line-height: 1.45;
+            min-height: 54px;
+            overflow-wrap: anywhere;
+            word-break: normal;
+        }
+        .feedback a {
+            color: #1e4520;
+            font-weight: 700;
+            overflow-wrap: anywhere;
+        }
+        .feedback:empty {
+            visibility: hidden;
+        }
+        .feedback.success {
+            background: #e8f7ef;
+            border-left-color: #2a7f6e;
+        }
+        .feedback.error {
+            background: #fff1eb;
+            border-left-color: #e74c3c;
+        }
+        .feedback.complete {
+            background: #fff7d6;
+            border-left-color: #e67e22;
+            font-weight: 700;
+        }
+        .arcade-progress {
+            margin: 0 0 14px;
+            text-align: left;
+        }
+        .panel-actions {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .timer {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1e3c2c;
+            color: white;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-weight: 700;
+            margin: 0 auto 16px;
+        }
+        .timer.warning {
+            background: #b45309;
+        }
+        .timer.danger {
+            background: #b91c1c;
+            animation: timerPulse 0.8s ease infinite;
+        }
+        @keyframes timerPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        .timer-row {
+            display: flex;
+            justify-content: center;
+        }
+        .timer-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 18px;
+            padding: 12px 14px;
+            margin: 14px 0;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .timer-option input {
+            width: 18px;
+            height: 18px;
+            accent-color: #2c5f2d;
+        }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            z-index: 1000;
+            animation: modalFade 0.3s ease;
+        }
+        @keyframes modalFade {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-content {
+            background: white;
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: min(100%, 500px);
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            text-align: center;
+            scrollbar-color: #2c5f2d #f3ead8;
+            scrollbar-width: thin;
+        }
+        .modal-content::-webkit-scrollbar {
+            width: 10px;
+        }
+        .modal-content::-webkit-scrollbar-track {
+            background: #f3ead8;
+            border-radius: 999px;
+        }
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #2c5f2d;
+            border: 2px solid #f3ead8;
+            border-radius: 999px;
+        }
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #1e4520;
+        }
+        .modal-content h3 { color: #2c5f2d; margin-bottom: 15px; }
+        .info-stand {
+            max-width: 640px;
+            padding: 28px 34px;
+            text-align: left;
+            scrollbar-gutter: stable;
+        }
+        .info-stand h2 {
+            margin: 0 0 22px;
+            color: #0f2a1a;
+            text-align: center;
+            font-size: 1.55rem;
+        }
+        .info-stand h3 {
+            margin: 22px 0 10px;
+            color: #2c5f2d;
+            font-size: 1.15rem;
+            text-align: left;
+        }
+        .info-stand p {
+            margin: 8px 0;
+            line-height: 1.45;
+            user-select: text;
+        }
+        .info-stand a {
+            color: #2c5f2d;
+            font-weight: 700;
+        }
+        .info-stand .close-info-btn {
+            display: block;
+            margin: 22px auto 0;
+        }
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .level-btn {
+            background: #2c5f2d;
+            border: none;
+            color: white;
+            padding: 12px 8px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+        .level-btn:hover { transform: scale(1.05); }
+        .cik-ref {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 4px;
+            max-width: 100%;
+            background: rgba(255, 255, 255, 0.62);
+            padding: 10px 18px;
+            border-radius: 999px;
+            margin: 0;
+            font-size: 0.82rem;
+            color: #18351f;
+            border: 1px solid rgba(44, 95, 45, 0.14);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 8px 22px rgba(30, 60, 44, 0.08);
+        }
+        .cik-ref a {
+            color: #1e4520;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .cik-ref a:hover { text-decoration: underline; }
+        .bottom-strip {
+            margin-top: 22px;
+            padding: 18px 20px 20px;
+            background: linear-gradient(180deg, rgba(232,224,208,0.16), rgba(232,224,208,0.62));
+            border-top: 1px solid rgba(44, 95, 45, 0.10);
+            text-align: center;
+            overflow-wrap: anywhere;
+        }
+        footer {
+            text-align: center;
+            padding: 10px 0 0;
+            background: transparent;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: #2c5f2d;
+            letter-spacing: 0;
+            overflow-wrap: anywhere;
+        }
+        .score-animate {
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .score-animate.pop {
+            animation: scorePop 0.3s ease;
+        }
+        @keyframes scorePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); color: #2a7f6e; }
+            100% { transform: scale(1); }
+        }
+        @media (max-width: 700px) {
+            body { padding: 10px; align-items: flex-start; }
+            .container { border-radius: 22px; }
+            .header {
+                min-height: 72px;
+                padding: 14px 58px 14px 16px;
+            }
+            .header h1 { font-size: 1.35rem; }
+            .info-btn {
+                right: 12px;
+                width: 44px;
+                min-height: 36px;
+                font-size: 1rem;
+                padding: 5px 8px;
+            }
+            .main-menu, .panel { padding: 18px; }
+            .game-card { width: 100%; border-radius: 18px; }
+            .memory-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+            .card { font-size: 0.58rem; padding: 5px; }
+            .element { width: 100%; min-width: 0; min-height: 50px; font-size: 0.85rem; margin: 8px 0; }
+            .options { grid-template-columns: 1fr; margin: 16px 0; }
+            .action-choice { width: 100%; max-width: none; min-width: 0; }
+            .panel-actions {
+                display: grid;
+                grid-template-columns: 1fr;
+            }
+            .panel-actions .reset-btn,
+            .panel-actions span {
+                width: 100%;
+            }
+            .panel-actions span .reset-btn {
+                width: 100%;
+            }
+            .level-grid { grid-template-columns: repeat(2, 1fr); }
+            .timer-option { align-items: flex-start; text-align: left; }
+            .feedback {
+                max-width: none;
+                margin: 14px 0;
+            }
+            .modal { padding: 12px; align-items: flex-start; }
+            .modal-content { max-height: calc(100vh - 24px); border-radius: 20px; }
+            .info-stand { padding: 22px 20px; }
+            .info-stand h2 { font-size: 1.35rem; }
+            .bottom-strip { margin: 18px -18px -18px; padding: 16px 14px 18px; }
+            .cik-ref { border-radius: 16px; line-height: 1.35; }
+        }
+        @media (max-width: 420px) {
+            body { padding: 6px; }
+            .container { border-radius: 16px; }
+            .header {
+                min-height: 64px;
+                padding: 12px 52px 12px 12px;
+            }
+            .header h1 { font-size: 1.12rem; }
+            .main-menu, .panel { padding: 14px; }
+            .arcade-progress { font-size: 1rem; }
+            .memory-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .card { font-size: 0.62rem; }
+            .feedback {
+                padding: 12px 14px;
+                border-radius: 14px;
+                border-left-width: 4px;
+                font-size: 0.92rem;
+            }
+            .bottom-strip {
+                margin: 16px -14px -14px;
+                padding: 14px 10px 16px;
+            }
+            .cik-ref {
+                width: 100%;
+                border-radius: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app"></div>
+
+<script>
+    // ============================================================
+    // 1. ИНФОРМАЦИОННАЯ СТОЙКА С ОФИЦИАЛЬНЫМИ ИСТОЧНИКАМИ
+    // ============================================================
+    function showInfoStand(onClose) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content info-stand">
+                <h2>📚 Информационная стойка</h2>
+                <h3>🗳️ Термины</h3>
+                <p><b>УИК</b> - Участковая избирательная комиссия</p>
+                <p><b>ТИК</b> - Территориальная избирательная комиссия</p>
+                <p><b>КОИБ</b> - Комплекс обработки избирательных бюллетеней</p>
+                <p><b>ДЭГ</b> - Дистанционное электронное голосование</p>
+                <p><b>Наблюдатель</b> - лицо, следящее за соблюдением избирательного законодательства</p>
+                <h3>⚖️ Законы</h3>
+                <p><b>ФЗ-67</b> - об основных гарантиях избирательных прав</p>
+                <p><b>Ст. 56</b> - агитация запрещена в помещении для голосования</p>
+                <p><b>Ст. 7</b> - тайна голосования</p>
+                <h3>📌 Официальные источники</h3>
+                <p><a href="https://cikrf.ru" target="_blank">ЦИК России - cikrf.ru</a></p>
+                <p><a href="https://www.rcoit.ru" target="_blank">РЦОИТ - rcoit.ru</a></p>
+                <button class="reset-btn close-info-btn" id="closeInfo">Закрыть</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+        document.getElementById('closeInfo').onclick = () => {
+            modal.remove();
+            if (onClose) onClose();
+        };
+    }
+
+    // ============================================================
+    // 2. ДАННЫЕ ДЛЯ ИГР (по материалам ЦИК России и РЦОИТ)
+    // ============================================================
+
+    const violationData = {
+        1: { name: "Лёгкий", target: 2, items: [
+            { id: "a", label: "Плакат с призывом голосовать", violation: true, info: "В помещении для голосования агитация запрещена" },
+            { id: "b", label: "Информационный стенд о кандидатах", violation: false, info: "Нейтральные сведения о кандидатах допустимы" },
+            { id: "c", label: "Кабина закрыта от посторонних", violation: false, info: "Так сохраняется тайна голосования" },
+            { id: "d", label: "Избирателя просят показать отметку", violation: true, info: "Нельзя контролировать волеизъявление избирателя" }
+        ]},
+        2: { name: "Средний", target: 2, items: [
+            { id: "a", label: "Кабина просматривается со стороны", violation: true, info: "Нарушается тайна голосования" },
+            { id: "b", label: "Наблюдатель ведёт записи", violation: false, info: "Наблюдатель вправе фиксировать ход голосования" },
+            { id: "c", label: "Бюллетень выдают после проверки паспорта", violation: false, info: "Документ избирателя проверяют перед выдачей бюллетеня" },
+            { id: "d", label: "Член УИК выдал бюллетень по копии паспорта", violation: true, info: "Для получения бюллетеня нужен документ, удостоверяющий личность" },
+            { id: "e", label: "КОИБ стоит у ящика для голосования", violation: false, info: "КОИБ используется для обработки бюллетеней" }
+        ]},
+        3: { name: "Сложный", target: 3, items: [
+            { id: "a", label: "Ящик для голосования стоит вне поля зрения", violation: true, info: "Ящики должны быть в поле зрения комиссии и наблюдателей" },
+            { id: "b", label: "Стол выдачи виден наблюдателям", violation: false, info: "Места выдачи бюллетеней должны быть наблюдаемы" },
+            { id: "c", label: "Наблюдатель входит в кабину", violation: true, info: "Посторонние не должны контролировать заполнение бюллетеня" },
+            { id: "d", label: "Член УИК сверяет данные паспорта", violation: false, info: "Проверка документа перед выдачей бюллетеня допустима" },
+            { id: "e", label: "У кабины стоит агитационная листовка", violation: true, info: "Агитационные материалы в помещении для голосования недопустимы" },
+            { id: "f", label: "Избиратель опускает бюллетень в ящик", violation: false, info: "Опускание бюллетеня в ящик является штатным действием избирателя" }
+        ]},
+        4: { name: "Эксперт", target: 3, items: [
+            { id: "a", label: "Избирателю предлагают подарок за голос", violation: true, info: "Подарок за голос является подкупом избирателя" },
+            { id: "b", label: "Член УИК объясняет порядок голосования", violation: false, info: "Разъяснение процедуры допустимо, если нет агитации" },
+            { id: "c", label: "Член УИК советует кандидата", violation: true, info: "Комиссия не должна склонять избирателя к выбору" },
+            { id: "d", label: "Наблюдателя не допускают без основания", violation: true, info: "Наблюдатель вправе присутствовать при соблюдении установленного порядка" },
+            { id: "e", label: "Очередь проходит спокойно", violation: false, info: "Само ожидание в очереди не является нарушением" },
+            { id: "f", label: "Председатель УИК объявляет порядок подсчёта", violation: false, info: "Разъяснение процедуры подсчёта не является нарушением" },
+            { id: "g", label: "Наблюдатель смотрит из общей зоны", violation: false, info: "Наблюдатель вправе следить за процессом, не нарушая тайну голосования" }
+        ]},
+        5: { name: "Мастер", target: 4, items: [
+            { id: "a", label: "Работодатель требует фотоотчёт от избирателя", violation: true, info: "Давление на избирателя нарушает свободу волеизъявления" },
+            { id: "b", label: "Избиратель сам заполняет бюллетень", violation: false, info: "Избиратель голосует лично и тайно" },
+            { id: "c", label: "Камера направлена внутрь кабины", violation: true, info: "Нельзя раскрывать волеизъявление избирателя" },
+            { id: "d", label: "Помощник выбран самим избирателем", violation: false, info: "Помощь допускается при соблюдении правил и тайны голосования" },
+            { id: "e", label: "Член УИК заполняет бюллетень за избирателя", violation: true, info: "Член комиссии не может контролировать выбор избирателя" },
+            { id: "f", label: "Избиратель голосует за родственника", violation: true, info: "Голосование вместо другого лица запрещено" },
+            { id: "g", label: "Наблюдатель предъявил направление", violation: false, info: "Наблюдатель допускается при наличии необходимых документов" },
+            { id: "h", label: "Комиссия погашает неиспользованные бюллетени", violation: false, info: "Погашение неиспользованных бюллетеней является штатной процедурой" }
+        ]},
+        6: { name: "Инспектор", target: 4, items: [
+            { id: "a", label: "Одному избирателю выдали два бюллетеня", violation: true, info: "Бюллетень выдаётся в установленном порядке одному избирателю" },
+            { id: "b", label: "Неиспользованные бюллетени погашают", violation: false, info: "Погашение неиспользованных бюллетеней является штатной процедурой" },
+            { id: "c", label: "Наблюдателю не выдают заверенную копию протокола", violation: true, info: "Наблюдатель вправе получить заверенную копию итогового протокола" },
+            { id: "d", label: "Подсчёт ведут открыто для наблюдения", violation: false, info: "Открытый подсчёт голосов соответствует процедуре" },
+            { id: "e", label: "Бюллетени считают вне зоны наблюдения", violation: true, info: "Подсчёт должен быть наблюдаемым" },
+            { id: "f", label: "Итоговый протокол подписан всеми членами УИК с правом решающего голоса", violation: false, info: "Подписание протокола членами УИК с правом решающего голоса соответствует процедуре" },
+            { id: "g", label: "Жалобу отказываются принять", violation: true, info: "Обращения о нарушениях должны приниматься и рассматриваться" },
+            { id: "h", label: "Наблюдателям показывают увеличенную форму протокола", violation: false, info: "Открытая демонстрация итоговых данных помогает контролю процедуры" },
+            { id: "i", label: "Погашенные бюллетени хранят отдельно", violation: false, info: "Раздельное хранение погашенных бюллетеней относится к штатной работе комиссии" }
+        ]}
+    };
+
+    const memoryData = {
+        1: { name: "4 пары", pairs: [
+            { term: "УИК", def: "Участковая избирательная комиссия" },
+            { term: "ТИК", def: "Территориальная избирательная комиссия" },
+            { term: "КОИБ", def: "Комплекс обработки избирательных бюллетеней" },
+            { term: "ДЭГ", def: "Дистанционное электронное голосование" }
+        ]},
+        2: { name: "4 пары", pairs: [
+            { term: "КОИБ", def: "Комплекс обработки избирательных бюллетеней" },
+            { term: "ДЭГ", def: "Дистанционное электронное голосование" },
+            { term: "Наблюдатель", def: "Лицо, следящее за соблюдением избирательного законодательства" },
+            { term: "Член УИК", def: "Организует голосование на избирательном участке" }
+        ]},
+        3: { name: "8 пар", pairs: [
+            { term: "Бюллетень", def: "Избирательный документ для голосования" },
+            { term: "Документ избирателя", def: "Документ, удостоверяющий личность при получении бюллетеня" },
+            { term: "Тайна голосования", def: "Запрет контроля за выбором избирателя" },
+            { term: "Агитация", def: "Деятельность по привлечению голосов" },
+            { term: "УИК", def: "Участковая избирательная комиссия" },
+            { term: "Наблюдатель", def: "Лицо, следящее за соблюдением избирательного законодательства" },
+            { term: "ТИК", def: "Территориальная избирательная комиссия" },
+            { term: "Член УИК", def: "Организует голосование на избирательном участке" }
+        ]},
+        4: { name: "8 пар", pairs: [
+            { term: "КОИБ", def: "Комплекс обработки избирательных бюллетеней" },
+            { term: "ДЭГ", def: "Дистанционное электронное голосование" },
+            { term: "ТИК", def: "Территориальная избирательная комиссия" },
+            { term: "Член УИК", def: "Организует голосование на избирательном участке" },
+            { term: "Паспорт", def: "Документ, удостоверяющий личность" },
+            { term: "Стол выдачи", def: "Место получения избирательного бюллетеня" },
+            { term: "Кабинка", def: "Место для тайного заполнения бюллетеня" },
+            { term: "Урна для голосования", def: "Ёмкость для опускания бюллетеней" }
+        ]},
+        5: { name: "8 пар", pairs: [
+            { term: "Федеральный закон № 67-ФЗ", def: "Основной закон о выборах в РФ" },
+            { term: "Помещение для голосования", def: "Место, где проходит выдача и заполнение бюллетеней" },
+            { term: "Избирательное право", def: "Право граждан избирать и быть избранным" },
+            { term: "Нарушитель", def: "Лицо, нарушающее избирательное законодательство" },
+            { term: "Жалоба", def: "Официальное обращение о нарушении закона" },
+            { term: "Пересчёт голосов", def: "Повторный подсчёт бюллетеней" },
+            { term: "Протокол УИК", def: "Итоговый документ о результатах голосования" },
+            { term: "20:00", def: "Время закрытия избирательного участка" }
+        ]},
+        6: { name: "8 пар", pairs: [
+            { term: "ГАС Выборы", def: "Система автоматизации избирательных процессов" },
+            { term: "Сейф-пакет", def: "Средство сохранности избирательных документов" },
+            { term: "Реестр заявлений", def: "Список обращений для голосования вне помещения" },
+            { term: "Контрольное соотношение", def: "Проверка согласованности чисел в протоколе" },
+            { term: "Недействительный бюллетень", def: "Бюллетень, по которому нельзя определить волю избирателя" },
+            { term: "Досрочное голосование", def: "Голосование до основного дня при предусмотренных условиях" },
+            { term: "Избирательный фонд", def: "Средства для финансирования кампании кандидата" },
+            { term: "Агитационный материал", def: "Материал, побуждающий голосовать за или против" }
+        ]}
+    };
+
+    const arcadeData = {
+        1: [
+            { q: "Какой документ избиратель обычно предъявляет для получения бюллетеня?", opts: ["Паспорт гражданина РФ", "СНИЛС", "ИНН", "Водительское удостоверение", "Полис ОМС", "Пенсионное удостоверение", "Студенческий билет", "Копия паспорта"], ans: 0, explanation: "Бюллетень выдают после проверки документа, удостоверяющего личность избирателя. Обычно это паспорт гражданина РФ.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Где избиратель получает избирательный бюллетень?", opts: ["У КОИБа", "У наблюдателя", "У стола выдачи членом УИК", "У кабины для голосования", "У ящика для голосования", "У информационного стенда", "У председателя после подсчёта", "У представителя кандидата"], ans: 2, explanation: "Бюллетень выдаёт член участковой избирательной комиссии после проверки данных избирателя.", sourceLabel: "РЦОИТ", sourceUrl: "https://www.rcoit.ru/" }
+        ],
+        2: [
+            { q: "Кто может направить наблюдателя на выборы?", opts: ["Кандидат, партия или субъект общественного контроля", "Председатель УИК", "Любой избиратель", "Территориальная комиссия", "Сотрудник администрации", "Другой наблюдатель", "Член УИК", "Родственник избирателя"], ans: 0, explanation: "Наблюдателей направляют участники выборов и уполномоченные субъекты общественного контроля, а не сама УИК по своему усмотрению.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Разрешена ли агитация в помещении для голосования?", opts: ["Да, если устно", "Да, если коротко", "Нет, запрещена", "Да, у стенда", "Да, до выдачи бюллетеня", "Да, без символики", "Да, не кандидату", "Да, после открытия участка"], ans: 2, explanation: "В помещении для голосования нельзя побуждать избирателей голосовать за или против кандидатов или списков кандитатов.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" }
+        ],
+        3: [
+            { q: "Что такое КОИБ?", opts: ["Комплекс обработки избирательных бюллетеней", "Комплекс обработки итоговых бланков", "Комиссия обработки бюллетеней", "Контрольный оператор бюллетеней", "Кабина обработки бюллетеней", "Комплект опечатывания бюллетеней", "Канал информирования бюро", "Книга учёта бюллетеней"], ans: 0, explanation: "КОИБ используется для автоматизированной обработки бюллетеней на участке.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что запрещено принципом тайны голосования?", opts: ["Контроль за волеизъявлением избирателя", "Проверка документов", "Наблюдение за подсчётом", "Получение бюллетеня", "Проход к кабине", "Уточнение участка", "Подача жалобы", "Получение копии протокола"], ans: 0, explanation: "Тайна голосования означает, что выбор избирателя нельзя проверять, требовать показать отметку или контролировать другим способом.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что должен сделать избиратель, если он испортил бюллетень?", opts: ["Оставить испорченный себе", "Попросить новый, сдать испорченный", "Опустить испорченный в ящик", "Передать наблюдателю", "Заполнить второй без УИК", "Забрать домой", "Попросить кандидата заменить", "Выбросить бюллетень"], ans: 1, explanation: "Если бюллетень испорчен, избиратель обращается в комиссию: испорченный бюллетень погашают, а взамен выдают новый.", sourceLabel: "РЦОИТ", sourceUrl: "https://www.rcoit.ru/" }
+        ],
+        4: [
+            { q: "Во сколько часов закрываются избирательные участки?", opts: ["18:00", "20:00", "22:00", "19:00", "21:00", "После последнего избирателя", "После решения наблюдателей", "После подписания протокола"], ans: 1, explanation: "Обычно голосование проводится до 20:00 по местному времени, после чего начинается процедура подсчёта.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что означает аббревиатура ДЭГ?", opts: ["Дистанционное электронное голосование", "Досрочное электронное голосование", "Документ электронного голосования", "Данные единого голосования", "Дополнительный электронный бюллетень", "Дежурная электронная группа", "Доступ к электронному голосованию", "Дневник электронного голосования"], ans: 0, explanation: "ДЭГ - это дистанционное электронное голосование, когда избиратель голосует онлайн при соблюдении установленных правил.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Как избиратель может заранее уточнить адрес своего участка?", opts: ["Через сервисы ЦИК России или по списку УИК", "По номеру бюллетеня", "У любого кандидата", "В Администрации муниципального образования", "В протоколе после голосования", "У наблюдателя", "По списку членов УИК", "Только через работодателя"], ans: 0, explanation: "Адрес участка можно проверить через официальные сервисы ЦИК, чтобы прийти именно на свой участок.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" }
+        ],
+        5: [
+            { q: "Можно ли кому-либо предлагать избирателю подарок за голос?", opts: ["Нет, это подкуп избирателя", "Да, если подарок небольшой", "Да, если без символики", "Да, после голосования", "Да, если избиратель попросил", "Да, если не от кандидата", "Да, за явку", "Да, возле участка"], ans: 0, explanation: "Подарок, деньги или другая выгода за голос нарушают свободу волеизъявления и считаются подкупом.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Кто подписывает протокол об итогах голосования УИК?", opts: ["Только председатель УИК", "Члены УИК с правом решающего голоса", "Только секретарь УИК", "Председатель и наблюдатели", "Все избиратели на участке", "Представители кандидатов", "Оператор КОИБ", "Сотрудник полиции"], ans: 1, explanation: "Итоговый протокол подписывают члены участковой комиссии с правом решающего голоса.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что должен сделать избиратель после заполнения бюллетеня в день голосования?", opts: ["Опустить бюллетень в ящик для голосования", "Вернуть члену УИК", "Оставить на столе выдачи", "Передать наблюдателю", "Показать председателю", "Положить в сейф-пакет", "Забрать домой", "Передать представителю кандидата"], ans: 0, explanation: "После заполнения бюллетень опускают в ящик для голосования или КОИБ, не показывая отметку посторонним.", sourceLabel: "РЦОИТ", sourceUrl: "https://www.rcoit.ru/" },
+            { q: "Можно ли избирателю фотографировать бюллетень, если от него требуют отчёт?", opts: ["Нет, это может нарушать тайну и свободу голосования", "Да, если просит работодатель", "Да, если фото не публиковать", "Да, если рядом нет наблюдателя", "Да, если кандидат разрешил", "Да, до опускания в ящик", "Да, после подписи в списке", "Да, если фото размыто"], ans: 0, explanation: "Требование отчёта о выборе создаёт давление на избирателя и противоречит принципу тайного свободного голосования.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" }
+        ],
+        6: [
+            { q: "Что должен сделать член комиссии перед выдачей бюллетеня?", opts: ["Проверить документ избирателя", "Спросить, за кого он голосует", "Поставить отметку в бюллетене", "Попросить показать бюллетень", "Выдать без проверки списка", "Передать наблюдателю", "Попросить расписаться после голосования", "Сообщить рекомендуемый выбор"], ans: 0, explanation: "Перед выдачей бюллетеня комиссия проверяет документ и наличие избирателя в списке избирателя.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Можно ли члену УИК склонять избирателя к выбору кандидата?", opts: ["Да, если тихо", "Нет, это нарушает свободу выбора", "Да, если нет наблюдателя", "Да, если кандидат зарегистрирован", "Да, если избиратель сомневается", "Да, до входа в кабину", "Да, после проверки паспорта", "Да, как личное мнение"], ans: 1, explanation: "Члены комиссии обеспечивают процедуру голосования, но не должны агитировать или влиять на выбор избирателя.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что означает выражение «публичный подсчёт голосов»?", opts: ["Подсчёт можно наблюдать", "Подсчёт ведёт только ТИК", "Бюллетени считают дома", "Наблюдатели заполняют протокол", "Итоги объявляют через месяц", "Бюллетени передают кандидатам", "Протокол заменяют устным отчётом", "Подсчёт идёт без оглашения"], ans: 0, explanation: "Подсчёт проводится открыто для лиц, которые вправе присутствовать на участке, включая наблюдателей.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" },
+            { q: "Что должна сделать комиссия, если обнаружена ошибка в протоколе?", opts: ["Скрыть ошибку", "Исправить по установленной процедуре", "Выбросить протокол", "Передать протокол кандидату", "Заменить устным сообщением", "Оставить до следующего дня", "Попросить наблюдателя переписать", "Вычеркнуть строку с ошибкой"], ans: 1, explanation: "Ошибки в протоколе исправляют только по установленной процедуре, чтобы сохранить достоверность итоговых данных.", sourceLabel: "ЦИК России", sourceUrl: "https://cikrf.ru/" }
+        ]
+    };
+
+    // ============================================================
+    // 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+    // ============================================================
+    const MAX_LEVEL = 6;
+    let activeTimerInterval = null;
+
+    function animateScore(element) {
+        element.classList.remove('pop');
+        void element.offsetWidth;
+        element.classList.add('pop');
+    }
+
+    function fadeTransition(callback) {
+        const container = document.getElementById('app').closest('.container');
+        container.classList.add('fade-out');
+        setTimeout(() => {
+            callback();
+            container.classList.remove('fade-out');
+        }, 400);
+    }
+
+    function setFeedback(type, title, text = '') {
+        const feedback = document.getElementById('feedback');
+        if (!feedback) return;
+        feedback.className = `feedback ${type}`;
+        feedback.innerHTML = `<strong>${title}</strong>${text ? `<br>${text}` : ''}`;
+    }
+
+    function getArcadeExplanation(step) {
+        return `${step.explanation}<br>Источник: <a href="${step.sourceUrl}" target="_blank" rel="noopener">${step.sourceLabel}</a>`;
+    }
+
+    function getArcadeWrongExplanation(step, selectedText) {
+        return `Вы выбрали: «${selectedText}». Этот вариант не подходит к ситуации из вопроса. Посмотрите пояснение в источнике и попробуйте ещё раз.<br>Источник: <a href="${step.sourceUrl}" target="_blank" rel="noopener">${step.sourceLabel}</a>`;
+    }
+
+    function clearActiveTimer() {
+        if (activeTimerInterval) {
+            clearInterval(activeTimerInterval);
+            activeTimerInterval = null;
+        }
+    }
+
+    function formatTime(totalSeconds) {
+        const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0');
+        const seconds = (totalSeconds % 60).toString().padStart(2, '0');
+        return `${minutes}:${seconds}`;
+    }
+
+    function getTimeLimit(level) {
+        return Math.max(12, 60 - (level - 1) * 5);
+    }
+
+    function createStopwatch(enabled, level, onExpire, limitOverride = null) {
+        clearActiveTimer();
+        const limit = limitOverride ?? getTimeLimit(level);
+        const state = {
+            enabled,
+            remaining: limit,
+            stopped: false,
+            html() {
+                return enabled ? `<div class="timer-row"><div class="timer" id="timerBox">⏱️ <span id="timerDisplay">${state.text()}</span></div></div>` : '';
+            },
+            bind() {
+                if (!enabled || state.stopped) return;
+                const display = document.getElementById('timerDisplay');
+                const box = document.getElementById('timerBox');
+                if (!display) return;
+                const update = () => {
+                    display.textContent = state.text();
+                    if (box) {
+                        box.classList.toggle('warning', state.remaining <= 10 && state.remaining > 5);
+                        box.classList.toggle('danger', state.remaining <= 5);
+                    }
+                    if (state.remaining <= 0) {
+                        state.stop();
+                        if (onExpire) onExpire();
+                        return;
+                    }
+                    state.remaining--;
+                };
+                update();
+                clearActiveTimer();
+                activeTimerInterval = setInterval(update, 1000);
+            },
+            stop() {
+                if (!enabled) return '';
+                state.stopped = true;
+                clearActiveTimer();
+                return state.text();
+            },
+            text() {
+                return formatTime(Math.max(0, state.remaining));
+            }
+        };
+        return state;
+    }
+
+    function nextLevel(game, level, timed) {
+        const starters = {
+            violation: startViolation,
+            memory: startMemory,
+            arcade: startArcade
+        };
+        if (level < MAX_LEVEL) {
+            fadeTransition(() => starters[game](level + 1, timed));
+        } else {
+            clearActiveTimer();
+            showMainMenu();
+        }
+    }
+
+    function activateOnEnterSpace(event, callback) {
+        if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            callback();
+        }
+    }
+
+
+    function shuffleItems(items) {
+        const result = [...items];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
+
+    function buildArcadeOptions(step, level) {
+        const correct = step.opts[step.ans];
+        const wrongBase = step.opts.filter((_, idx) => idx !== step.ans);
+        const wrongTarget = Math.min(wrongBase.length, level + 1);
+        const wrongOptions = shuffleItems(wrongBase).slice(0, wrongTarget);
+        return shuffleItems([correct, ...wrongOptions]).map(text => ({
+            text,
+            correct: text === correct
+        }));
+    }
+
+    // ============================================================
+    // 4. ИГРА 1: НАЙДИ НАРУШЕНИЕ (правильные ответы НЕ УПЛЫВАЮТ)
+    // ============================================================
+    function startViolation(level, timed = false) {
+        const data = violationData[level];
+        let found = [];
+        let expired = false;
+        const timer = createStopwatch(timed, level, () => {
+            expired = true;
+            document.querySelectorAll('.element').forEach(el => el.classList.add('disabled'));
+            setFeedback('error', '⏱️ Время вышло.', 'Нажмите «Повторить», чтобы пройти уровень заново.');
+        });
+
+        function render() {
+            const itemsHtml = data.items.map(item =>
+                `<div class="element ${found.includes(item.id) ? 'found' : ''}" data-id="${item.id}" role="button" tabindex="0">${item.label}</div>`
+            ).join('');
+
+            const html = `
+                <div class="header">
+                    <h1>🔍 Найди нарушение</h1>
+                    <button class="info-btn" onclick="showInfoStand(() => startViolation(${level}, ${timed}))">📚</button>
+                </div>
+                <div class="panel" id="violationPanel">
+                    ${timer.html()}
+                    <h3>Уровень ${level}: ${data.name}</h3>
+                    <p>Найдите ${data.target} нарушения</p>
+                    <div style="text-align: center;" id="itemsContainer">${itemsHtml}</div>
+                    <p>Найдено: <span class="score-animate" id="scoreDisplay">${found.length}</span> / ${data.target}</p>
+                    <div class="feedback" id="feedback"></div>
+                    <div class="panel-actions">
+                        ${found.length === data.target ? `<button class="reset-btn" id="nextViolation">${level < MAX_LEVEL ? 'Далее' : 'Завершить'}</button>` : ''}
+                        ${timed ? `<button class="reset-btn" id="retryViolation">Повторить</button>` : ''}
+                        <button class="reset-btn" onclick="showMainMenu()">В меню</button>
+                    </div>
+                    <div class="bottom-strip">
+                        <div class="cik-ref">📌 Источники: <a href="https://cikrf.ru" target="_blank">ЦИК России</a>, <a href="https://www.rcoit.ru" target="_blank">РЦОИТ</a></div>
+                        <footer>Интерактивный тренажёр по избирательному праву</footer>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('app').innerHTML = html;
+            timer.bind();
+
+            document.querySelectorAll('.element').forEach(el => {
+                el.removeEventListener('click', handleViolationClick);
+                el.addEventListener('click', handleViolationClick);
+                el.onkeydown = (event) => activateOnEnterSpace(event, () => el.click());
+            });
+
+            const nextBtn = document.getElementById('nextViolation');
+            if (nextBtn) nextBtn.onclick = () => nextLevel('violation', level, timed);
+            const retryBtn = document.getElementById('retryViolation');
+            if (retryBtn) retryBtn.onclick = () => startViolation(level, timed);
+        }
+
+        function handleViolationClick(e) {
+            const el = e.currentTarget;
+            if (expired) return;
+            const id = el.dataset.id;
+            if (found.includes(id)) return;
+            const item = data.items.find(i => i.id === id);
+            if (!item) return;
+
+            if (item.violation) {
+                found.push(id);
+                // Элемент остаётся на месте, становится зелёным и перечёркнутым
+                el.classList.remove('element');
+                el.classList.add('element', 'found', 'correct-flash');
+                const scoreEl = document.getElementById('scoreDisplay');
+                if (scoreEl) {
+                    scoreEl.textContent = found.length;
+                    animateScore(scoreEl);
+                }
+                if (found.length === data.target) {
+                    const finalTime = timer.stop();
+                    render();
+                    setFeedback(
+                        'complete',
+                        level < MAX_LEVEL ? '🏆 Уровень пройден!' : '🏆 Все уровни пройдены!',
+                        `${level < MAX_LEVEL ? 'Все нарушения найдены. Можно перейти дальше.' : 'Вы нашли нарушения на всех уровнях.'}${timed ? ` Осталось: ${finalTime}.` : ''}`
+                    );
+                    return;
+                }
+                setFeedback('success', '✅ Верно!', item.info);
+            } else {
+                el.classList.add('wrong-shake');
+                setFeedback('error', '❌ Это не нарушение.', item.info);
+                setTimeout(() => el.classList.remove('wrong-shake'), 400);
+            }
+        }
+
+        render();
+    }
+
+    // ============================================================
+    // 5. ИГРА 2: МЕМОРИ
+    // ============================================================
+    function startMemory(level, timed = false) {
+        const data = memoryData[level];
+        const pairs = data.pairs;
+        const forcedTimeLimit = level === 5 ? 50 : level === 6 ? 40 : null;
+        const memoryTimed = timed || forcedTimeLimit !== null;
+        let expired = false;
+        const timer = createStopwatch(memoryTimed, level, () => {
+            expired = true;
+            lock = true;
+            document.querySelectorAll('.card').forEach(card => card.classList.add('disabled'));
+            setFeedback('error', '⏱️ Время вышло.', 'Нажмите «Повторить», чтобы разложить пары заново.');
+        }, forcedTimeLimit);
+        let cards = [];
+        pairs.forEach((p, idx) => {
+            cards.push({ id: idx, type: 'term', text: p.term, pairId: idx, flipped: false, matched: false });
+            cards.push({ id: idx, type: 'def', text: p.def, pairId: idx, flipped: false, matched: false });
+        });
+        for (let i = cards.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cards[i], cards[j]] = [cards[j], cards[i]];
+        }
+        let flipped = [];
+        let lock = false;
+        let matched = 0;
+
+        function render() {
+            const gridHtml = cards.map((c, idx) => {
+                let cls = 'card';
+                if (c.matched) cls += ' matched';
+                else if (c.flipped) cls += ' flipped';
+                return `<div class="${cls}" data-idx="${idx}" role="button" tabindex="0">${c.matched || c.flipped ? c.text : '?'}</div>`;
+            }).join('');
+
+            const html = `
+                <div class="header">
+                    <h1>🧠 Мемори: ${data.name}</h1>
+                    <button class="info-btn" onclick="showInfoStand(() => startMemory(${level}, ${timed}))">📚</button>
+                </div>
+                <div class="panel">
+                    ${timer.html()}
+                    ${forcedTimeLimit ? `<p><b>Уровень на время: ${forcedTimeLimit} секунд</b></p>` : ''}
+                    <div class="memory-grid" id="memoryGrid">${gridHtml}</div>
+                    <p>Пар: <span class="score-animate" id="matchDisplay">${matched}</span> / ${pairs.length}</p>
+                    <div class="feedback" id="feedback"></div>
+                    <div class="panel-actions">
+                        ${matched === pairs.length ? `<button class="reset-btn" id="nextMemory">${level < MAX_LEVEL ? 'Далее' : 'Завершить'}</button>` : ''}
+                        ${memoryTimed ? `<button class="reset-btn" id="retryMemory">Повторить</button>` : ''}
+                        <button class="reset-btn" onclick="showMainMenu()">В меню</button>
+                    </div>
+                    <div class="bottom-strip">
+                        <div class="cik-ref">📌 Источники: <a href="https://cikrf.ru" target="_blank">ЦИК России</a>, <a href="https://www.rcoit.ru" target="_blank">РЦОИТ</a></div>
+                        <footer>Интерактивный тренажёр по избирательному праву</footer>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('app').innerHTML = html;
+            timer.bind();
+
+            document.querySelectorAll('.card:not(.matched)').forEach(el => {
+                el.removeEventListener('click', handleMemoryClick);
+                el.addEventListener('click', handleMemoryClick);
+                el.onkeydown = (event) => activateOnEnterSpace(event, () => el.click());
+            });
+
+            const nextBtn = document.getElementById('nextMemory');
+            if (nextBtn) nextBtn.onclick = () => nextLevel('memory', level, timed);
+            const retryBtn = document.getElementById('retryMemory');
+            if (retryBtn) retryBtn.onclick = () => startMemory(level, timed);
+        }
+
+        function handleMemoryClick(e) {
+            if (lock || expired) return;
+            const el = e.currentTarget;
+            const idx = parseInt(el.dataset.idx);
+            if (cards[idx].flipped || cards[idx].matched) return;
+
+            cards[idx].flipped = true;
+            el.classList.add('flipped');
+            el.textContent = cards[idx].text;
+            flipped.push(idx);
+
+            if (flipped.length === 2) {
+                lock = true;
+                const a = cards[flipped[0]];
+                const b = cards[flipped[1]];
+                const elA = document.querySelector(`.card[data-idx="${flipped[0]}"]`);
+                const elB = document.querySelector(`.card[data-idx="${flipped[1]}"]`);
+
+                if (a.pairId === b.pairId && a.type !== b.type) {
+                    matched++;
+                    a.matched = true;
+                    b.matched = true;
+                    if (elA) { elA.classList.remove('flipped'); elA.classList.add('matched'); elA.textContent = a.text; }
+                    if (elB) { elB.classList.remove('flipped'); elB.classList.add('matched'); elB.textContent = b.text; }
+                    const matchEl = document.getElementById('matchDisplay');
+                    if (matchEl) {
+                        matchEl.textContent = matched;
+                        animateScore(matchEl);
+                    }
+                    flipped = [];
+                    lock = false;
+                    if (matched === pairs.length) {
+                        const finalTime = timer.stop();
+                        render();
+                        setFeedback(
+                            'complete',
+                            level < MAX_LEVEL ? '🏆 Уровень пройден!' : '🏆 Мастер терминов!',
+                            `${level < MAX_LEVEL ? 'Все пары найдены. Можно перейти дальше.' : 'Все уровни мемори пройдены.'}${memoryTimed ? ` Осталось: ${finalTime}.` : ''}`
+                        );
+                    } else {
+                        setFeedback('success', '✅ Пара найдена!', `${matched} / ${pairs.length}`);
+                    }
+                } else {
+                    setFeedback('error', '❌ Не пара.', 'Карточки скоро закроются. Попробуйте другую комбинацию.');
+                    setTimeout(() => {
+                        if (elA && !elA.classList.contains('matched')) {
+                            elA.classList.remove('flipped');
+                            elA.textContent = '?';
+                        }
+                        if (elB && !elB.classList.contains('matched')) {
+                            elB.classList.remove('flipped');
+                            elB.textContent = '?';
+                        }
+                        cards[flipped[0]].flipped = false;
+                        cards[flipped[1]].flipped = false;
+                        flipped = [];
+                        lock = false;
+                        render();
+                    }, 600);
+                }
+            }
+        }
+
+        render();
+    }
+
+    // ============================================================
+    // 6. ИГРА 3: ПОМОГИ ИЗБИРАТЕЛЮ
+    // ============================================================
+    function startArcade(level, timed = false) {
+        const steps = arcadeData[level];
+        let timer = null;
+        let stepIdx = 0;
+        let score = 0;
+        let answered = false;
+        let questionExpired = false;
+        let currentOptions = [];
+
+        function render() {
+            if (stepIdx >= steps.length) {
+                const html = `
+                    <div class="header">
+                        <h1>🏃 Помоги избирателю</h1>
+                        <button class="info-btn" onclick="showInfoStand(() => startArcade(${level}, ${timed}))">📚</button>
+                    </div>
+                    <div class="panel">
+                        <h2>Уровень ${level} пройден! ${score}/${steps.length}</h2>
+                        <div class="feedback complete" id="feedback"><strong>${level < MAX_LEVEL ? '🏆 Уровень пройден!' : '🏆 Все уровни пройдены!'}</strong><br>Результат: ${score} из ${steps.length}.</div>
+                        <div class="panel-actions">
+                            <button class="reset-btn" id="nextArcade">${level < MAX_LEVEL ? 'Далее' : 'Завершить'}</button>
+                            <button class="reset-btn" onclick="showMainMenu()">В меню</button>
+                        </div>
+                        <div class="bottom-strip">
+                            <div class="cik-ref">📌 Источники: <a href="https://cikrf.ru" target="_blank">ЦИК России</a>, <a href="https://www.rcoit.ru" target="_blank">РЦОИТ</a></div>
+                            <footer>Интерактивный тренажёр по избирательному праву</footer>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('app').innerHTML = html;
+                document.getElementById('nextArcade').onclick = () => nextLevel('arcade', level, timed);
+                return;
+            }
+
+            answered = false;
+            questionExpired = false;
+            const step = steps[stepIdx];
+            currentOptions = buildArcadeOptions(step, level);
+            timer = createStopwatch(timed, level, () => {
+                questionExpired = true;
+                answered = true;
+                document.querySelectorAll('.action-choice').forEach(b => b.classList.add('disabled'));
+                setFeedback('error', '⏱️ Время вышло.', 'Нажмите «Повторить», чтобы начать уровень заново.');
+            });
+            const optsHtml = currentOptions.map((option, i) =>
+                `<button class="action-choice" data-idx="${i}">${option.text}</button>`
+            ).join('');
+
+            const html = `
+                <div class="header">
+                    <h1>🏃 Помоги избирателю</h1>
+                    <button class="info-btn" onclick="showInfoStand(() => startArcade(${level}, ${timed}))">📚</button>
+                </div>
+                <div class="panel">
+                    ${timer.html()}
+                    <h3 class="arcade-progress">Уровень ${level} &nbsp;&nbsp;&nbsp; Вопрос ${stepIdx + 1} из ${steps.length}</h3>
+                    <p style="font-size: 1.1rem;">${step.q}</p>
+                    <div class="options" id="arcadeOptions">${optsHtml}</div>
+                    <div class="feedback" id="feedback"></div>
+                    <div class="panel-actions">
+                        <span id="nextArcadeQuestionSlot"></span>
+                        ${timed ? `<button class="reset-btn" id="retryArcade">Повторить</button>` : ''}
+                        <button class="reset-btn" onclick="showMainMenu()">В меню</button>
+                    </div>
+                    <div class="bottom-strip">
+                        <div class="cik-ref">📌 Источники: <a href="https://cikrf.ru" target="_blank">ЦИК России</a>, <a href="https://www.rcoit.ru" target="_blank">РЦОИТ</a></div>
+                        <footer>Интерактивный тренажёр по избирательному праву</footer>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('app').innerHTML = html;
+            timer.bind();
+
+            document.querySelectorAll('.action-choice').forEach(btn => {
+                btn.removeEventListener('click', handleArcadeClick);
+                btn.addEventListener('click', handleArcadeClick);
+            });
+            const retryBtn = document.getElementById('retryArcade');
+            if (retryBtn) retryBtn.onclick = () => startArcade(level, timed);
+        }
+
+        function handleArcadeClick(e) {
+            const btn = e.currentTarget;
+            if (answered || questionExpired) return;
+            const choice = parseInt(btn.dataset.idx);
+            const option = currentOptions[choice];
+            const step = steps[stepIdx];
+
+            document.querySelectorAll('.action-choice').forEach(b => b.classList.add('disabled'));
+
+            if (option && option.correct) {
+                if (timer) timer.stop();
+                btn.classList.add('correct-answer');
+                score++;
+                setFeedback('success', '✅ Верно!', getArcadeExplanation(step));
+                answered = true;
+                const nextSlot = document.getElementById('nextArcadeQuestionSlot');
+                if (nextSlot) {
+                    nextSlot.innerHTML = '<button class="reset-btn" id="nextArcadeQuestion">Дальше</button>';
+                    document.getElementById('nextArcadeQuestion').onclick = () => {
+                        stepIdx++;
+                        render();
+                    };
+                }
+            } else {
+                btn.classList.add('wrong-answer');
+                setFeedback('error', '❌ Неверно.', getArcadeWrongExplanation(step, option ? option.text : ''));
+                setTimeout(() => {
+                    if (questionExpired) return;
+                    btn.classList.remove('wrong-answer');
+                    btn.classList.remove('disabled');
+                    document.querySelectorAll('.action-choice').forEach(b => b.classList.remove('disabled'));
+                }, 900);
+            }
+        }
+
+        render();
+    }
+
+    // ============================================================
+    // 7. ГЛАВНОЕ МЕНЮ
+    // ============================================================
+    function showMainMenu() {
+        clearActiveTimer();
+        const html = `
+            <div class="header">
+                <h1>🗳️ Избирательный полигон</h1>
+                <button class="info-btn" onclick="showInfoStand(showMainMenu)">📚</button>
+            </div>
+            <div class="main-menu">
+                <div class="menu-buttons">
+                    <div class="game-card" id="menuArcade" role="button" tabindex="0"><h2>🏃 Помоги избирателю</h2><p>Ответь на вопросы</p></div>
+                    <div class="game-card" id="menuMemory" role="button" tabindex="0"><h2>🧠 Мемори</h2><p>Найди пары терминов</p></div>
+                    <div class="game-card" id="menuViolation" role="button" tabindex="0"><h2>🔍 Найди нарушение</h2><p>Кликни по незаконным элементам</p></div>
+                </div>
+                <div class="bottom-strip">
+                    <div class="cik-ref">
+                        📌 Официальные источники: <a href="https://cikrf.ru" target="_blank">ЦИК России</a>, <a href="https://www.rcoit.ru" target="_blank">РЦОИТ</a>
+                    </div>
+                    <footer>Интерактивный тренажёр по избирательному праву</footer>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('app').innerHTML = html;
+
+        document.getElementById('menuViolation').onclick = () => showLevelSelect('violation');
+        document.getElementById('menuMemory').onclick = () => showLevelSelect('memory');
+        document.getElementById('menuArcade').onclick = () => showLevelSelect('arcade');
+        document.querySelectorAll('.game-card').forEach(card => {
+            card.onkeydown = (event) => activateOnEnterSpace(event, () => card.click());
+        });
+    }
+
+    // ============================================================
+    // 8. ВЫБОР УРОВНЯ
+    // ============================================================
+    function showLevelSelect(game) {
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <h3>⭐ Выберите уровень</h3>
+                <div class="level-grid">
+                    ${Array.from({ length: MAX_LEVEL }, (_, i) => i + 1).map(l => `<button class="level-btn" data-lvl="${l}">Уровень ${l}</button>`).join('')}
+                </div>
+                <label class="timer-option">
+                    <input type="checkbox" id="timerMode">
+                    <span>Играть на время</span>
+                </label>
+                <button class="reset-btn" id="cancelLevel" style="margin-top:10px;">← Назад в меню</button>
+            </div>
+        `;
+        document.body.appendChild(modal);
+
+        document.querySelectorAll('.level-btn').forEach(btn => {
+            btn.onclick = () => {
+                const lvl = parseInt(btn.dataset.lvl);
+                const timed = document.getElementById('timerMode').checked;
+                modal.remove();
+                if (game === 'violation') startViolation(lvl, timed);
+                else if (game === 'memory') startMemory(lvl, timed);
+                else if (game === 'arcade') startArcade(lvl, timed);
+            };
+        });
+        document.getElementById('cancelLevel').onclick = () => modal.remove();
+    }
+
+    // ============================================================
+    // 9. ЗАПУСК
+    // ============================================================
+    try {
+        showMainMenu();
+    } catch (e) {
+        document.getElementById('app').innerHTML = '<h1>Ошибка загрузки</h1><p>' + e.message + '</p>';
+        console.error(e);
+    }
+</script>
+</body>
+</html>
+
+
+
+
+
+
